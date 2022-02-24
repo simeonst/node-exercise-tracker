@@ -14,25 +14,6 @@ app.get("/", (req, res) => {
 });
 
 app.get("/api/users", async (req, res) => {
-  db.all(
-    `
-  SELECT 
-      username, id
-  FROM
-      Users
-  `,
-    (err, rows) => {
-      if (err) {
-        res.status(400).json({ error: err.message });
-        return;
-      }
-      res.status(200).json({ rows });
-    }
-  );
-});
-
-/*
-app.get("/api/users", async (req, res) => {
   try {
     const rows = await db.all(`
     SELECT 
@@ -46,7 +27,6 @@ app.get("/api/users", async (req, res) => {
     return;
   }
 });
-*/
 
 app.post("/api/users", (req, res) => {
   console.log("request body");

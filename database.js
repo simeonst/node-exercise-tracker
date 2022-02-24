@@ -70,11 +70,9 @@ if (!dbExists) {
   );
 }
 
-/*
 db.run = util.promisify(db.run);
 db.get = util.promisify(db.get);
 db.all = util.promisify(db.all);
-*/
 
 module.exports = db;
 
