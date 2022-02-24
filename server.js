@@ -15,13 +15,13 @@ app.get("/", (req, res) => {
 
 app.get("/api/users", async (req, res) => {
   try {
-    const rows = await db.all(`
+    const result = await db.all(`
     SELECT 
-        username, id
+        id as _id, username
     FROM
         Users
     `);
-    res.status(200).json({ rows });
+    res.status(200).json(result);
   } catch (error) {
     res.status(400).json({ error: error.message });
     return;
@@ -29,9 +29,7 @@ app.get("/api/users", async (req, res) => {
 });
 
 app.post("/api/users", async (req, res) => {
-  console.log("request body");
-  console.log(req.body);
-  const username = req.body.username;
+  const username = req.body?.username;
 
   if (username) {
     try {
