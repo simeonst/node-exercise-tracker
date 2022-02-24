@@ -2,55 +2,75 @@ var util = require("util");
 var path = require("path");
 var fs = require("fs");
 
-var sqlite3 = require("sqlite3");
+var sqlite3 = require("sqlite3").verbose();
 require("dotenv").config();
 
-// ******
-
-// stores database
-const DB_PATH = path.join(__dirname, "my.db");
-// stores schema for database
-const DB_SQL_PATH = path.join(__dirname, "mydb.sql");
-
-var args = {
-  other: 10,
-};
-// *****
-
-var SQL3;
-
-async function main() {
-  // define some SQLite3 databse helpers, make SQL3 promise based for get, all, exec
-  var myDB = new sqlite3.Database(DB_PATH);
-  SQL3 = {
-    run(...args) {
-      return new Promise(function c(resolve, reject) {
-        myDB.run(...args, function onResult(err) {
-          if (err) reject(err);
-          else resolve(this);
-        });
-      });
-    },
-    get: util.promisify(myDB.get.bind(myDB)),
-    all: util.promisify(myDB.all.bind(myDB)),
-    exec: util.promisify(myDB.exec.bind(myDB)),
-  };
-
-  var initSQL = fs.readFileSync(DB_SQL_PATH, "utf-8");
-  await SQL3.exec(initSQL);
-
-  var username = "firstUser";
-  var something = "bla bla";
-
-  var userID = await insertOrLookupUsername(username);
-  if (userID) {
-    // TODO
-
-    return;
-  }
-
-  error("Oops");
+var dbFile = "./my.db";
+var dbExists = fs.existsSync(dbFile);
+if (!dbExists) {
+  fs.openSync(dbFile, "w");
 }
+
+const db = new sqlite3.Database(dbFile);
+
+if (dbExists) {
+  console.log("database exists already!");
+}
+
+if (!dbExists) {
+  console.log("creating new database");
+  db.run(
+    `CREATE TABLE IF NOT EXISTS Users (
+          id INTEGER PRIMARY KEY ASC,
+          username VARCHAR(40) UNIQUE
+          )
+          `,
+    (err) => {
+      if (err) {
+        console.log(err);
+        console.log("Users table already exists.");
+      } else {
+        console.log("Users table created");
+        const insertUsers = "INSERT INTO Users (username) VALUES (?)";
+        db.run(insertUsers, "admin");
+        console.log("added admin");
+        db.run(insertUsers, "user1");
+        console.log("added user1");
+        db.run(insertUsers, "user2");
+        console.log("added user2");
+      }
+    }
+  );
+  db.run(
+    `
+    CREATE TABLE IF NOT EXISTS Exercises (
+        id INTEGER PRIMARY KEY ASC,
+        username VARCHAR(40),
+        description VARCHAR(100),
+        duration VARCHAR(100),
+        date VARCHAR(100),
+        FOREIGN KEY (username) REFERENCES Users (username)
+    )
+    `,
+    (err) => {
+      if (err) {
+        console.log(err);
+        console.log("excercises table already exists.");
+      } else {
+        console.log("created excercises table");
+        const dateToday = new Date();
+        const insertExercises =
+          "INSERT INTO Exercises (username, description, duration, date) VALUES (?,?,?,?)";
+        db.run(insertExercises, ["admin", "description", 30, dateToday]);
+        db.run(insertExercises, ["user1", "description", 30, dateToday]);
+        db.run(insertExercises, ["user2", "description", 30, dateToday]);
+        console.log("inserted exercises");
+      }
+    }
+  );
+}
+
+module.exports = db;
 
 async function insertOrLookupUsername(username) {
   var result = SQL3.get(
