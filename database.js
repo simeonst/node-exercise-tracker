@@ -70,6 +70,12 @@ if (!dbExists) {
   );
 }
 
+/*
+db.run = util.promisify(db.run);
+db.get = util.promisify(db.get);
+db.all = util.promisify(db.all);
+*/
+
 module.exports = db;
 
 async function insertOrLookupUsername(username) {
@@ -107,7 +113,7 @@ async function insertExercise(username, description, duration, date) {
   var result = await SQL3.run(
     `
               INSERT INTO
-                  Users (username, description, duration, date)
+                  Exercises (username, description, duration, date)
               VALUES
                   (?,?,?,?)
             `,
