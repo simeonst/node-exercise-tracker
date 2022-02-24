@@ -80,26 +80,41 @@ app.get("/api/users/:_id/logs", async (req, res) => {
 
 app.post("/api/users/:_id/exercises", async (req, res) => {
   const id = req.params._id;
-  const description = req.body;
+  const description = req.body.description;
   const duration = parseInt(req.body.duration);
-  let date = req.body.date;
+  const date = req.body.date;
+  let formattedDate;
+  let parsedDate;
+
+  try {
+    parsedDate = Date.parse(date);
+    if (parsedDate) {
+      formattedDate = new Date(parsedDate).toDateString();
+    } else {
+      throw new Error("Please enter a date in format YYYY-MM-DD");
+    }
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+    return;
+  }
 
   if (id && description && duration) {
     try {
       const data = await db.get("SELECT username FROM Users WHERE id=(?)", id);
       const username = data.username;
-      if (!date) {
-        date = new Date().toDateString();
+      if (!parsedDate) {
+        formattedDate = new Date().toDateString();
       }
 
       await db.run(
         `INSERT INTO Exercises (username, description, duration, date) VALUES (?,?,?,?)`,
-        [username, description, duration, date]
+        [username, description, duration, formattedDate]
       );
+
       res.status(201).json({
         _id: id,
         username: username,
-        date: date,
+        date: formattedDate,
         duration: duration,
         description: description,
       });
