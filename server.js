@@ -28,35 +28,24 @@ app.get("/api/users", async (req, res) => {
   }
 });
 
-app.post("/api/users", (req, res) => {
+app.post("/api/users", async (req, res) => {
   console.log("request body");
   console.log(req.body);
   const username = req.body.username;
 
   if (username) {
-    db.run(
-      `INSERT INTO Users (username) VALUES (?)`,
-      username,
-      (err, result) => {
-        if (err) {
-          res.status(400).json({ error: err.message });
-          return;
-        }
-        db.get("SELECT last_insert_rowid() as id FROM Users", (err, result) => {
-          if (err) {
-            console.log("error retrieving id");
-            res.status(400).json({ error: err.message });
-            return;
-          } else {
-            res.status(201).json({
-              _id: result.id,
-              username: username,
-            });
-            return;
-          }
-        });
-      }
-    );
+    try {
+      await db.run(`INSERT INTO Users (username) VALUES (?)`, username);
+      const row = await db.get("SELECT last_insert_rowid() as id FROM Users");
+      res.status(201).json({
+        _id: row.id,
+        username: username,
+      });
+      return;
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+      return;
+    }
   } else {
     res.status(400).json({ error: "No username sent" });
   }
