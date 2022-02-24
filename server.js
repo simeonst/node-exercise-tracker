@@ -78,6 +78,41 @@ app.get("/api/users/:_id/logs", async (req, res) => {
   }
 });
 
+app.post("/api/users/:_id/exercises", async (req, res) => {
+  const id = req.params._id;
+  const description = req.body;
+  const duration = parseInt(req.body.duration);
+  let date = req.body.date;
+
+  if (id && description && duration) {
+    try {
+      const data = await db.get("SELECT username FROM Users WHERE id=(?)", id);
+      const username = data.username;
+      if (!date) {
+        date = new Date().toDateString();
+      }
+
+      await db.run(
+        `INSERT INTO Exercises (username, description, duration, date) VALUES (?,?,?,?)`,
+        [username, description, duration, date]
+      );
+      res.status(201).json({
+        _id: id,
+        username: username,
+        date: date,
+        duration: duration,
+        description: description,
+      });
+      return;
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+      return;
+    }
+  } else {
+    res.status(400).json({ error: "No username sent" });
+  }
+});
+
 app.get("/exercises", async (req, res) => {
   try {
     const result = await db.all(
