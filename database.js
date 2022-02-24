@@ -47,7 +47,7 @@ if (!dbExists) {
         id INTEGER PRIMARY KEY ASC,
         username VARCHAR(40),
         description VARCHAR(100),
-        duration VARCHAR(100),
+        duration INTEGER,
         date VARCHAR(100),
         FOREIGN KEY (username) REFERENCES Users (username)
     )
@@ -58,12 +58,12 @@ if (!dbExists) {
         console.log("excercises table already exists.");
       } else {
         console.log("created excercises table");
-        const dateToday = new Date();
+        const dateToday = new Date().toDateString();
         const insertExercises =
           "INSERT INTO Exercises (username, description, duration, date) VALUES (?,?,?,?)";
-        db.run(insertExercises, ["admin", "description", 30, dateToday]);
-        db.run(insertExercises, ["user1", "description", 30, dateToday]);
-        db.run(insertExercises, ["user2", "description", 30, dateToday]);
+        db.run(insertExercises, ["admin", "gym", 60, dateToday]);
+        db.run(insertExercises, ["user1", "run", 30, dateToday]);
+        db.run(insertExercises, ["user2", "walk", 90, dateToday]);
         console.log("inserted exercises");
       }
     }
@@ -73,6 +73,7 @@ if (!dbExists) {
 db.run = util.promisify(db.run);
 db.get = util.promisify(db.get);
 db.all = util.promisify(db.all);
+db.each = util.promisify(db.each);
 
 module.exports = db;
 

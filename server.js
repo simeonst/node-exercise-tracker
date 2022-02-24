@@ -49,22 +49,50 @@ app.post("/api/users", async (req, res) => {
   }
 });
 
+app.get("/api/users/:_id/logs", async (req, res) => {
+  const id = req.params._id;
+  try {
+    const data = await db.get("SELECT username FROM Users WHERE id=(?)", id);
+    const username = data.username;
+    const result = await db.all(
+      `
+    SELECT 
+        description, duration, date
+    FROM
+        Exercises
+    WHERE
+        username=(?)
+    `,
+      username
+    );
+    console.log(result);
+    res.status(200).json({
+      _id: id,
+      username: username,
+      count: result.length,
+      log: result,
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+    return;
+  }
+});
+
 app.get("/exercises", async (req, res) => {
-  db.all(
+  try {
+    const result = await db.all(
+      `
+    SELECT 
+        *
+    FROM
+        Exercises
     `
-  SELECT 
-      *
-  FROM
-      Exercises
-  `,
-    (err, rows) => {
-      if (err) {
-        res.status(400).json({ error: err.message });
-        return;
-      }
-      res.status(200).json({ rows });
-    }
-  );
+    );
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+    return;
+  }
 });
 
 const listener = app.listen(process.env.PORT || 8000, () => {
