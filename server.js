@@ -87,10 +87,19 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
   let parsedDate;
 
   try {
+    if (!id) {
+      throw new Error("Please enter a valid ID");
+    }
+    if (!description) {
+      throw new Error("Please enter a description");
+    }
+    if (!duration) {
+      throw new Error("Please enter a duration");
+    }
     parsedDate = Date.parse(date);
     if (parsedDate) {
       formattedDate = new Date(parsedDate).toDateString();
-    } else {
+    } else if (date && !parsedDate) {
       throw new Error("Please enter a date in format YYYY-MM-DD");
     }
   } catch (error) {
