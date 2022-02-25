@@ -67,6 +67,12 @@ app.get("/api/users/:_id/logs", async (req, res) => {
     `,
       username
     );
+
+    result.forEach((obj) => {
+      const strDate = new Date(obj.date).toDateString();
+      obj.date = strDate;
+    });
+
     res.status(200).json({
       _id: id,
       username: username,
@@ -83,9 +89,8 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
   const id = req.params._id;
   const description = req.body.description;
   const duration = parseInt(req.body.duration);
-  const date = req.body.date;
-  let formattedDate;
-  let parsedDate;
+  let date = req.body.date;
+  let parsedDate = Date.parse(date);
 
   try {
     if (!id) {
@@ -97,10 +102,8 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
     if (!duration) {
       throw new Error("Please enter a duration");
     }
-    parsedDate = Date.parse(date);
-    if (parsedDate) {
-      formattedDate = new Date(parsedDate).toDateString();
-    } else if (date && !parsedDate) {
+
+    if (date && isNaN(parsedDate)) {
       throw new Error("Please enter a date in format YYYY-MM-DD");
     }
   } catch (error) {
@@ -112,19 +115,23 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
     try {
       const data = await db.get("SELECT username FROM Users WHERE id=(?)", id);
       const username = data.username;
-      if (!parsedDate) {
-        formattedDate = new Date().toDateString();
+
+      if (!date) {
+        date = new Date().toISOString().split("T")[0];
+      } else {
+        date = new Date(date).toISOString().split("T")[0];
       }
+      const dateStr = new Date(date).toDateString();
 
       await db.run(
         `INSERT INTO Exercises (username, description, duration, date) VALUES (?,?,?,?)`,
-        [username, description, duration, formattedDate]
+        [username, description, duration, date]
       );
 
       res.status(201).json({
         _id: id,
         username: username,
-        date: formattedDate,
+        date: dateStr,
         duration: duration,
         description: description,
       });
