@@ -21,6 +21,10 @@ app.get("/api/users", async (req, res) => {
     FROM
         Users
     `);
+    result.forEach((row) => {
+      const strID = row._id.toString();
+      row._id = strID;
+    });
     res.status(200).json(result);
   } catch (error) {
     res.status(400).json({ error: error.message });
