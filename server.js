@@ -55,6 +55,7 @@ app.get("/api/users/:_id/logs", async (req, res) => {
 
   const fromParam = from ? ` AND date>="${from}"` : ``;
   const toParam = to ? ` AND date<="${to}"` : ``;
+  const limitParam = limit ? `LIMIT ${limit}` : ``;
 
   try {
     const data = await db.get("SELECT username FROM Users WHERE id=(?)", id);
@@ -63,6 +64,7 @@ app.get("/api/users/:_id/logs", async (req, res) => {
     SELECT description, duration, date
     FROM Exercises
     WHERE username=(?)${fromParam}${toParam}
+    ${limitParam}
     `;
     const result = await db.all(query, username);
 
