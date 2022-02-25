@@ -51,22 +51,20 @@ app.post("/api/users", async (req, res) => {
 
 app.get("/api/users/:_id/logs", async (req, res) => {
   const id = req.params._id;
-  const { from, to, limit } = req.params;
+  const { from, to, limit } = req.query;
+
+  const fromParam = from ? ` AND date>="${from}"` : ``;
+  const toParam = to ? ` AND date<="${to}"` : ``;
 
   try {
     const data = await db.get("SELECT username FROM Users WHERE id=(?)", id);
     const username = data.username;
-    const result = await db.all(
-      `
-    SELECT 
-        description, duration, date
-    FROM
-        Exercises
-    WHERE
-        username=(?)
-    `,
-      username
-    );
+    const query = `
+    SELECT description, duration, date
+    FROM Exercises
+    WHERE username=(?)${fromParam}${toParam}
+    `;
+    const result = await db.all(query, username);
 
     result.forEach((obj) => {
       const strDate = new Date(obj.date).toDateString();
