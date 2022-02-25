@@ -39,8 +39,10 @@ app.post("/api/users", async (req, res) => {
     try {
       await db.run(`INSERT INTO Users (username) VALUES (?)`, username);
       const row = await db.get("SELECT last_insert_rowid() as id FROM Users");
+      const strID = row.id.toString();
+
       res.status(201).json({
-        _id: row.id,
+        _id: strID,
         username: username,
       });
       return;
