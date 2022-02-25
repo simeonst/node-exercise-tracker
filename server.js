@@ -54,6 +54,7 @@ app.get("/api/users/:_id/logs", async (req, res) => {
   const { from, to, limit } = req.query;
   let fromParam = ``;
   let toParam = ``;
+  let limitParam = ``;
 
   const dateRegex = /^\d{4}\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])$/gm;
 
@@ -78,8 +79,13 @@ app.get("/api/users/:_id/logs", async (req, res) => {
       toParam = ` AND date<="${to}"`;
     }
 
-    const limitParam =
-      limit && parseInt(limit) ? `LIMIT ${parseInt(limit)}` : ``;
+    if (limit) {
+      const isLimitValid = parseInt(limit);
+      if (!isLimitValid) {
+        throw new Error("Invalid limit. Please provide an integer.");
+      }
+      limitParam = `LIMIT ${parseInt(limit)}`;
+    }
 
     const data = await db.get("SELECT username FROM Users WHERE id=(?)", id);
     const username = data.username;
