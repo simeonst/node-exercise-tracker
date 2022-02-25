@@ -52,12 +52,35 @@ app.post("/api/users", async (req, res) => {
 app.get("/api/users/:_id/logs", async (req, res) => {
   const id = req.params._id;
   const { from, to, limit } = req.query;
+  let fromParam = ``;
+  let toParam = ``;
 
-  const fromParam = from ? ` AND date>="${from}"` : ``;
-  const toParam = to ? ` AND date<="${to}"` : ``;
-  const limitParam = limit ? `LIMIT ${limit}` : ``;
+  const dateRegex = /^\d{4}\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])$/gm;
 
   try {
+    if (from) {
+      const fromIsValid = from.match(dateRegex);
+      if (!fromIsValid) {
+        throw new Error(
+          "Invalid date format for FROM parameter. Must be in format YYYY-MM-DD"
+        );
+      }
+      fromParam = ` AND date>="${from}"`;
+    }
+
+    if (to) {
+      const toIsValid = to.match(dateRegex);
+      if (!toIsValid) {
+        throw new Error(
+          "Invalid date format for TO parameter. Must be in format YYYY-MM-DD"
+        );
+      }
+      toParam = ` AND date<="${to}"`;
+    }
+
+    const limitParam =
+      limit && parseInt(limit) ? `LIMIT ${parseInt(limit)}` : ``;
+
     const data = await db.get("SELECT username FROM Users WHERE id=(?)", id);
     const username = data.username;
     const query = `
