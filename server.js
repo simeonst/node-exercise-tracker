@@ -51,6 +51,8 @@ app.post("/api/users", async (req, res) => {
 
 app.get("/api/users/:_id/logs", async (req, res) => {
   const id = req.params._id;
+  const { from, to, limit } = req.params;
+
   try {
     const data = await db.get("SELECT username FROM Users WHERE id=(?)", id);
     const username = data.username;
@@ -65,7 +67,6 @@ app.get("/api/users/:_id/logs", async (req, res) => {
     `,
       username
     );
-    console.log(result);
     res.status(200).json({
       _id: id,
       username: username,

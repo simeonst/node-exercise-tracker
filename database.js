@@ -18,7 +18,7 @@ if (dbExists) {
 }
 
 if (!dbExists) {
-  console.log("creating new database");
+  console.log("creating Users table.");
   db.run(
     `CREATE TABLE IF NOT EXISTS Users (
           id INTEGER PRIMARY KEY ASC,
@@ -30,14 +30,12 @@ if (!dbExists) {
         console.log(err);
         console.log("Users table already exists.");
       } else {
-        console.log("Users table created");
+        console.log("Users table created.");
         const insertUsers = "INSERT INTO Users (username) VALUES (?)";
         db.run(insertUsers, "admin");
-        console.log("added admin");
         db.run(insertUsers, "user1");
-        console.log("added user1");
         db.run(insertUsers, "user2");
-        console.log("added user2");
+        console.log("Inserted Users data.");
       }
     }
   );
@@ -48,23 +46,30 @@ if (!dbExists) {
         username VARCHAR(40),
         description VARCHAR(100),
         duration INTEGER,
-        date VARCHAR(100),
+        date DATE,
         FOREIGN KEY (username) REFERENCES Users (username)
     )
     `,
     (err) => {
       if (err) {
         console.log(err);
-        console.log("excercises table already exists.");
+        console.log("Excercises table already exists.");
       } else {
-        console.log("created excercises table");
-        const dateToday = new Date().toDateString();
+        console.log("Created excercises table");
         const insertExercises =
           "INSERT INTO Exercises (username, description, duration, date) VALUES (?,?,?,?)";
-        db.run(insertExercises, ["admin", "gym", 60, dateToday]);
-        db.run(insertExercises, ["user1", "run", 30, dateToday]);
-        db.run(insertExercises, ["user2", "walk", 90, dateToday]);
-        console.log("inserted exercises");
+        db.run(insertExercises, ["admin", "gym", 60, "2022-01-01"]);
+        db.run(insertExercises, ["admin", "run", 30, "2022-01-02"]);
+        db.run(insertExercises, ["admin", "hike", 120, "2022-01-03"]);
+
+        db.run(insertExercises, ["user1", "run", 30, "2022-01-01"]);
+        db.run(insertExercises, ["user1", "walk", 90, "2022-01-02"]);
+        db.run(insertExercises, ["user1", "swim", 45, "2022-01-03"]);
+
+        db.run(insertExercises, ["user2", "gym", 90, "2022-01-03"]);
+        db.run(insertExercises, ["user2", "walk", 90, "2022-01-02"]);
+        db.run(insertExercises, ["user2", "swim", 45, "2022-01-02"]);
+        console.log("Inserted Exercises data.");
       }
     }
   );
