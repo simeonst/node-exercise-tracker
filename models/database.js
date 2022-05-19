@@ -1,11 +1,13 @@
 var util = require("util");
-var path = require("path");
 var fs = require("fs");
 
 var sqlite3 = require("sqlite3").verbose();
 require("dotenv").config();
 
-var dbFile = "./my.db";
+const { dirname } = require("path");
+const appDir = dirname(require.main.filename);
+var dbFile = appDir + "/my.db";
+
 var dbExists = fs.existsSync(dbFile);
 if (!dbExists) {
   fs.openSync(dbFile, "w");
