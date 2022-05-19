@@ -87,10 +87,9 @@ app.get("/api/users/:_id/logs", async (req, res) => {
 
     if (limit) {
       const isLimitValid = parseInt(limit);
-      if (!isLimitValid) {
-        throw new Error("Invalid limit. Please provide an integer.");
+      if (!isLimitValid || isLimitValid < 1) {
+        throw new Error("Invalid limit. Please provide a positive integer.");
       }
-      limitParam = `LIMIT ${parseInt(limit)}`;
     }
 
     const data = await db.get("SELECT username FROM Users WHERE id=(?)", id);
@@ -105,11 +104,16 @@ app.get("/api/users/:_id/logs", async (req, res) => {
     SELECT description, duration, date
     FROM Exercises
     WHERE username=(?)${fromParam}${toParam}
-    ${limitParam}
     `;
     const result = await db.all(query, username);
 
-    result.forEach((obj) => {
+    let resultsToReturn = result;
+
+    if (limit) {
+      resultsToReturn = result.slice(0, limit);
+    }
+
+    resultsToReturn.forEach((obj) => {
       const strDate = new Date(obj.date).toDateString();
       obj.date = strDate;
     });
@@ -118,7 +122,7 @@ app.get("/api/users/:_id/logs", async (req, res) => {
       _id: id,
       username: username,
       count: result.length,
-      log: result,
+      log: resultsToReturn,
     });
   } catch (error) {
     res.status(400).json({ error: error.message });
