@@ -94,6 +94,12 @@ app.get("/api/users/:_id/logs", async (req, res) => {
     }
 
     const data = await db.get("SELECT username FROM Users WHERE id=(?)", id);
+
+    if (typeof data === "undefined" || !data) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
     const username = data.username;
     const query = `
     SELECT description, duration, date
