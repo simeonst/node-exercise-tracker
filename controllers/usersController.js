@@ -42,11 +42,8 @@ exports.user_create = async function (req, res) {
 exports.user_get_logs = async function (req, res) {
   const id = req.params._id;
   const { from, to, limit } = req.query;
-  let fromParam = ``;
-  let toParam = ``;
 
   const dateRegex = /^\d{4}\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])$/gm;
-
   try {
     if (from) {
       const fromIsValid = from.match(dateRegex);
@@ -55,7 +52,6 @@ exports.user_get_logs = async function (req, res) {
           "Invalid date format for FROM parameter. Must be in format YYYY-MM-DD"
         );
       }
-      fromParam = ` AND date>="${from}"`;
     }
 
     if (to) {
@@ -65,7 +61,6 @@ exports.user_get_logs = async function (req, res) {
           "Invalid date format for TO parameter. Must be in format YYYY-MM-DD"
         );
       }
-      toParam = ` AND date<="${to}"`;
     }
 
     if (limit) {
@@ -77,19 +72,13 @@ exports.user_get_logs = async function (req, res) {
 
     const data = await access.getUserByID(id);
 
-    if (typeof data === "undefined" || !data) {
+    if (typeof data === "undefined" || !data || !data.username) {
       res.status(404).json({ error: "User not found" });
       return;
     }
 
     const username = data.username;
-    const query = `
-      SELECT description, duration, date
-      FROM Exercises
-      WHERE username=(?)${fromParam}${toParam}
-      `;
-
-    const result = await access.getUserLogs(query, username);
+    const result = await access.getUserLogs(username, from, to);
 
     let resultsToReturn = result;
 
