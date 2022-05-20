@@ -1,11 +1,13 @@
 var util = require("util");
-var path = require("path");
 var fs = require("fs");
 
 var sqlite3 = require("sqlite3").verbose();
 require("dotenv").config();
+const schema = require("./schema");
+const { dirname } = require("path");
+const appDir = dirname(require.main.filename);
+var dbFile = appDir + "/my.db";
 
-var dbFile = "./my.db";
 var dbExists = fs.existsSync(dbFile);
 if (!dbExists) {
   fs.openSync(dbFile, "w");
@@ -20,10 +22,7 @@ if (dbExists) {
 if (!dbExists) {
   console.log("creating Users table.");
   db.run(
-    `CREATE TABLE IF NOT EXISTS Users (
-          id INTEGER PRIMARY KEY ASC,
-          username VARCHAR(40) UNIQUE
-          )
+    `CREATE TABLE IF NOT EXISTS ${schema.users}
           `,
     (err) => {
       if (err) {
@@ -41,14 +40,7 @@ if (!dbExists) {
   );
   db.run(
     `
-    CREATE TABLE IF NOT EXISTS Exercises (
-        id INTEGER PRIMARY KEY ASC,
-        username VARCHAR(40),
-        description VARCHAR(100),
-        duration INTEGER,
-        date DATE,
-        FOREIGN KEY (username) REFERENCES Users (username)
-    )
+    CREATE TABLE IF NOT EXISTS ${schema.exercises}
     `,
     (err) => {
       if (err) {
@@ -81,75 +73,3 @@ db.all = util.promisify(db.all);
 db.each = util.promisify(db.each);
 
 module.exports = db;
-
-async function insertOrLookupUsername(username) {
-  var result = SQL3.get(
-    `
-            SELECT
-                id
-            FROM 
-                Users
-            WHERE
-                username = ?
-        `,
-    username
-  );
-
-  if (result && result.id) {
-    return result.id;
-  } else {
-    result = await SQL3.run(
-      `
-            INSERT INTO
-                Users (username)
-            VALUES
-                (?)
-          `,
-      username
-    );
-    if (result && result.lastID) {
-      return result.lastID;
-    }
-  }
-}
-
-async function insertExercise(username, description, duration, date) {
-  var result = await SQL3.run(
-    `
-              INSERT INTO
-                  Exercises (username, description, duration, date)
-              VALUES
-                  (?,?,?,?)
-            `,
-    username,
-    description,
-    duration,
-    date
-  );
-  if (result && result.changes > 0) {
-    return true;
-  }
-  return false;
-}
-
-async function getAllUsers() {
-  var result = await SQL3.all(
-    `
-            SELECT 
-                username, id
-            FROM
-                Users
-        `
-  );
-
-  if (result && result.length > 0) {
-    return result;
-  }
-}
-
-function error(err) {
-  if (err) {
-    console.error(err.toString());
-    console.log("");
-  }
-}
