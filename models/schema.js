@@ -1,15 +1,13 @@
-PRAGMA foreign_keys = ON;
-
-CREATE TABLE IF NOT EXISTS Exercises (
+exports.exercises = `Exercises (
     id INTEGER PRIMARY KEY ASC,
     username VARCHAR(40),
     description STRING,
     duration INTEGER,
     date STRING,
     FOREIGN KEY (username) REFERENCES Users (username)
-);
+)`;
 
-CREATE TABLE IF NOT EXISTS Users (
+exports.users = `Users (
     id INTEGER PRIMARY KEY ASC,
     username VARCHAR(40) UNIQUE
-);
+    )`;

@@ -1,5 +1,3 @@
-const db = require("../models/database");
-
 const access = require("../models/access");
 
 exports.index = async function (req, res) {
