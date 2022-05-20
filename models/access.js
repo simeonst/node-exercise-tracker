@@ -22,23 +22,17 @@ exports.getUserByID = async function (id) {
 };
 
 exports.getUserLogs = async function (username, from, to) {
-  let fromParam = "";
-  if (from) {
-    fromParam = ` AND date>="${from}"`;
-  }
-
-  let toParam = "";
-  if (to) {
-    toParam = ` AND date<="${to}"`;
-  }
-
   const query = `
       SELECT description, duration, date
       FROM Exercises
-      WHERE username=(?)${fromParam}${toParam}
+      WHERE username=(?)
+      ${from ? ` AND date>=(?)` : ``}
+      ${to ? ` AND date<=(?)` : ``}
       `;
 
-  const result = await db.all(query, username);
+  const params = [username, ...(from ? [from] : []), ...(to ? [to] : [])];
+
+  const result = await db.all(query, params);
   return result;
 };
 
