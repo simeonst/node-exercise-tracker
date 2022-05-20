@@ -1,13 +1,10 @@
 const db = require("../models/database");
 
+const access = require("../models/access");
+
 exports.index = async function (req, res) {
   try {
-    const result = await db.all(`
-      SELECT 
-          id as _id, username
-      FROM
-          Users
-      `);
+    const result = await access.getAllUsers();
 
     result.forEach((row) => {
       const strID = row._id.toString();
@@ -25,8 +22,7 @@ exports.user_create = async function (req, res) {
 
   if (username) {
     try {
-      await db.run(`INSERT INTO Users (username) VALUES (?)`, username);
-      const row = await db.get("SELECT last_insert_rowid() as id FROM Users");
+      const row = await access.createUser(username);
       const strID = row.id.toString();
 
       res.status(201).json({
@@ -48,7 +44,6 @@ exports.user_get_logs = async function (req, res) {
   const { from, to, limit } = req.query;
   let fromParam = ``;
   let toParam = ``;
-  let limitParam = ``;
 
   const dateRegex = /^\d{4}\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])$/gm;
 
@@ -80,7 +75,7 @@ exports.user_get_logs = async function (req, res) {
       }
     }
 
-    const data = await db.get("SELECT username FROM Users WHERE id=(?)", id);
+    const data = await access.getUserByID(id);
 
     if (typeof data === "undefined" || !data) {
       res.status(404).json({ error: "User not found" });
@@ -93,7 +88,8 @@ exports.user_get_logs = async function (req, res) {
       FROM Exercises
       WHERE username=(?)${fromParam}${toParam}
       `;
-    const result = await db.all(query, username);
+
+    const result = await access.getUserLogs(query, username);
 
     let resultsToReturn = result;
 
@@ -126,7 +122,7 @@ exports.user_create_logs = async function (req, res) {
   let parsedDate = Date.parse(date);
 
   try {
-    if (!id) {
+    if (!id || parseInt(id) < 0) {
       throw new Error("Please enter a valid ID");
     }
     if (!description) {
@@ -146,7 +142,10 @@ exports.user_create_logs = async function (req, res) {
 
   if (id && description && duration) {
     try {
-      const data = await db.get("SELECT username FROM Users WHERE id=(?)", id);
+      const data = await access.getUserByID(id);
+      if (!data) {
+        throw new Error("A user with that id does not exist");
+      }
       const username = data.username;
 
       if (!date) {
@@ -156,10 +155,7 @@ exports.user_create_logs = async function (req, res) {
       }
       const dateStr = new Date(date).toDateString();
 
-      await db.run(
-        `INSERT INTO Exercises (username, description, duration, date) VALUES (?,?,?,?)`,
-        [username, description, duration, date]
-      );
+      await access.postNewExercise(username, description, duration, date);
 
       res.status(201).json({
         _id: id,

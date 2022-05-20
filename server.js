@@ -1,10 +1,8 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const db = require("./models/database");
 require("dotenv").config();
 var bodyParser = require("body-parser");
-
 const indexRouter = require("./routes/index.js");
 const usersRouter = require("./routes/users.js");
 
