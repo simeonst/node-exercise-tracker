@@ -18,7 +18,7 @@ exports.index = async function (req, res) {
 exports.user_create = async function (req, res) {
   const username = req.body?.username;
 
-  if (username) {
+  if (username && typeof username === "string") {
     try {
       const row = await access.createUser(username);
       const strID = row.id.toString();
@@ -33,7 +33,7 @@ exports.user_create = async function (req, res) {
       return;
     }
   } else {
-    res.status(400).json({ error: "No username sent" });
+    res.status(400).json({ error: "Try a different username" });
   }
 };
 
@@ -43,6 +43,13 @@ exports.user_get_logs = async function (req, res) {
 
   const dateRegex = /^\d{4}\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])$/gm;
   try {
+    if (id) {
+      const isValidId = parseInt(id);
+      if (!isValidId || isValidId < 1) {
+        throw new Error("Invalid user ID.");
+      }
+    }
+
     if (from) {
       const fromIsValid = from.match(dateRegex);
       if (!fromIsValid) {
@@ -109,7 +116,7 @@ exports.user_create_logs = async function (req, res) {
   let parsedDate = Date.parse(date);
 
   try {
-    if (!id || parseInt(id) < 0) {
+    if (!id || !parseInt(id) || parseInt(id) < 0) {
       throw new Error("Please enter a valid ID");
     }
     if (!description) {
